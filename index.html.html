@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub de Alta Performance - Perito (Anki Engine Pro)</title>
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --card-bg: #151c2c;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        h1 { font-size: 1.6rem; color: #60a5fa; }
+        
+        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+
+        .btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: #1e293b; }
+
+        .form-grid { display: grid; grid-template-columns: 2fr 2fr 3fr 1fr auto; gap: 10px; margin-bottom: 15px; }
+        .anki-form-grid { display: grid; grid-template-columns: 1fr 2fr 2fr auto; gap: 10px; margin-bottom: 15px; }
+        @media(max-width: 850px) { .form-grid, .anki-form-grid { grid-template-columns: 1fr; } }
+
+        input, select, textarea { background: #0b0f19; border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: 6px; font-size: 0.9rem; width: 100%; }
+        input[type="number"] { text-align: center; font-weight: bold; }
+        textarea { resize: vertical; height: 70px; }
+
+        /* BLOCOS E MATÉRIAS */
+        .bloco-group { margin-bottom: 25px; background: rgba(0,0,0,0.15); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+        .bloco-title { background: #1e293b; padding: 12px 20px; font-size: 1.1rem; font-weight: bold; color: #60a5fa; border-bottom: 1px solid var(--border); }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { color: var(--muted); background: rgba(0,0,0,0.2); }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+
+        /* ANKI SYSTEM FLIP 3D */
+        .anki-container { perspective: 1000px; width: 100%; max-width: 650px; height: 300px; margin: 20px auto; }
+        .anki-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s; cursor: pointer; }
+        .anki-card.flipped { transform: rotateY(180deg); }
+        .anki-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; border: 1px solid var(--accent); padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: #0b0f19; }
+        .anki-back { transform: rotateY(180deg); border-color: var(--success); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Hub de Alta Performance - Perito</h1>
+            <p style="color: var(--muted); font-size: 0.85rem;">Gestão por Blocos e Motor Anki Avançado</p>
+        </div>
+        <button class="btn btn-outline" onclick="limparTudo()">Resetar Dados</button>
+    </header>
+
+    <!-- ADICIONAR TÓPICO / CONTEÚDO -->
+    <div class="card">
+        <h2 style="font-size: 1.1rem; margin-bottom: 15px;">➕ Adicionar Conteúdo / Tópico por Matéria</h2>
+        <div class="form-grid">
+            <select id="input-bloco">
+                <option value="Conhecimentos Gerais">Conhecimentos Gerais</option>
+                <option value="Conhecimentos Específicos">Conhecimentos Específicos</option>
+            </select>
+            <input type="text" id="input-materia" placeholder="Matéria (ex: Português)">
+            <input type="text" id="input-conteudo" placeholder="Conteúdo (ex: Crase e Regência)">
+            <input type="number" id="input-perc" placeholder="% Tec" min="0" max="100">
+            <button class="btn" onclick="adicionarTopico()">Adicionar</button>
+        </div>
+    </div>
+
+    <!-- PAINEL EM BLOCOS -->
+    <div class="card">
+        <h2 style="font-size: 1.2rem; margin-bottom: 15px;">📊 Edital Organizado em Blocos e Matérias</h2>
+        <div id="blocos-container"></div>
+    </div>
+
+    <!-- GESTÃO E CRIAÇÃO DE FLASHCARDS (ESTILO ANKI DECKS) -->
+    <div class="card">
+        <h2 style="font-size: 1.2rem; margin-bottom: 15px;">📝 Criar Novo Flashcard (Baralho Anki)</h2>
+        <div class="anki-form-grid">
+            <input type="text" id="anki-tag-novo" placeholder="Matéria / Tag (ex: Contabilidade)">
+            <textarea id="anki-p-novo" placeholder="Frente (Pergunta ou Premissa Cebraspe)"></textarea>
+            <textarea id="anki-r-novo" placeholder="Verso (Resposta / Justificativa)"></textarea>
+            <button class="btn" onclick="criarFlashcard()" style="height: auto;">Salvar Card</button>
+        </div>
+    </div>
+
+    <!-- MOTOR ANKI / REVISÃO ESPAÇADA -->
+    <div class="card" style="text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="font-size: 1.2rem;">🧠 Sessão de Revisão Anki</h2>
+            <select id="filtro-deck" style="width: 200px;" onchange="mudarDeck(this.value)">
+                <option value="todos">Todos os Baralhos</option>
+            </select>
+        </div>
+        <p style="color: var(--muted); font-size: 0.85rem;" id="anki-status">Cartões pendentes</p>
+        
+        <div class="anki-container">
+            <div class="anki-card" id="anki-obj" onclick="virarAnki()">
+                <div class="anki-face anki-front">
+                    <span class="badge badge-danger" id="anki-tag">Matéria</span>
+                    <p style="font-size: 1.1rem; font-weight: 600; margin-top: 15px;" id="anki-p">Carregando...</p>
+                    <span style="font-size: 0.75rem; color: var(--muted); margin-top: 15px;">🔄 Clique para revelar a resposta</span>
+                </div>
+                <div class="anki-face anki-back">
+                    <p style="font-size: 1.05rem; color: #a7f3d0;" id="anki-r">...</p>
+                    <span style="font-size: 0.75rem; color: var(--muted); margin-top: 15px;">Clique para voltar</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
+            <button class="btn btn-danger" onclick="avaliarAnki('denovo')">1. De Novo (1 dia)</button>
+            <button class="btn btn-warning" onclick="avaliarAnki('bom')">2. Bom (3 dias)</button>
+            <button class="btn btn-success" onclick="avaliarAnki('fácil')">3. Fácil (7 dias)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let dadosEdital = JSON.parse(localStorage.getItem('perito_blocos')) || [
+        {
+            bloco: "Conhecimentos Gerais",
+            materias: [
+                { nome: "Língua Portuguesa", conteudos: [{ id: 101, desc: "Compreensão, coesão e reescrita de textos", perc: 85 }, { id: 102, desc: "Sintaxe da oração e do período (Crase/Regência)", perc: 75 }] },
+                { nome: "Direito Processual Penal", conteudos: [{ id: 103, desc: "Exame de Corpo de Delito e Cadeia de Custódia", perc: 70 }] }
+            ]
+        },
+        {
+            bloco: "Conhecimentos Específicos",
+            materias: [
+                { nome: "Contabilidade Geral/Av.", conteudos: [{ id: 201, desc: "Lei das S/A, Balanço Patrimonial e DRE", perc: 65 }, { id: 202, desc: "Valuation e Análise de Demonstrações", perc: 78 }] },
+                { nome: "Economia & Finanças", conteudos: [{ id: 203, desc: "Modelo IS-LM e Macroeconomia", perc: 72 }, { id: 204, desc: "Legislação de Criptoativos (Lei 14.478)", perc: 84 }] }
+            ]
+        }
+    ];
+
+    let flashcardsAnki = JSON.parse(localStorage.getItem('perito_anki')) || [
+        { id: 1, tag: "Processual Penal", p: "A quebra formal da cadeia de custódia anula automaticamente a prova pericial?", r: "ERRADO. A jurisprudência exige a demonstração concreta de prejuízo ou alteração material.", intervalo: 1 },
+        { id: 2, tag: "Contabilidade", p: "Qual a diferença central entre o Fluxo de Caixa Descontado e o Valor Patrimonial?", r: "O FCD foca na capacidade futura de geração de caixa ajustada ao risco; o VP reflete o histórico contábil.", intervalo: 1 },
+        { id: 3, tag: "Economia", p: "O que diz a Lei nº 14.478/2022 sobre ativos virtuais?", r: "Define-os como representação digital de valor negociada eletronicamente para pagamento ou investimento.", intervalo: 1 }
+    ];
+
+    let ankiIdx = 0;
+    let deckAtual = 'todos';
+
+    function salvarTudo() {
+        localStorage.setItem('perito_blocos', JSON.stringify(dadosEdital));
+        localStorage.setItem('perito_anki', JSON.stringify(flashcardsAnki));
+        renderizar();
+    }
+
+    function renderizar() {
+        const container = document.getElementById('blocos-container');
+        container.innerHTML = '';
+
+        dadosEdital.forEach((blocoObj, bIdx) => {
+            let htmlMaterias = '';
+            
+            blocoObj.materias.forEach((matObj, mIdx) => {
+                let linhasConteudos = '';
+                matObj.conteudos.forEach((cont, cIdx) => {
+                    const isCritico = cont.perc < 80;
+                    const badge = isCritico ? `<span class="badge badge-danger">⚠️ ${cont.perc}% (Reforçar)</span>` : `<span class="badge badge-success">✅ ${cont.perc}% (Bom)</span>`;
+                    
+                    linhasConteudos += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05);">
+                            <span>🔹 ${cont.desc}</span>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="number" value="${cont.perc}" min="0" max="100" style="width: 65px;" onchange="atualizarNota(${bIdx}, ${mIdx}, ${cIdx}, this.value)">%
+                                ${badge}
+                                <button class="btn btn-danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="removerConteudo(${bIdx}, ${mIdx}, ${cIdx})">X</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                htmlMaterias += `
+                    <tr>
+                        <td style="width: 25%; font-weight: bold; color: #60a5fa; vertical-align: top;">${matObj.nome}</td>
+                        <td>${linhasConteudos || '<span style="color:var(--muted)">Nenhum conteúdo adicionado.</span>'}</td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML += `
+                <div class="bloco-group">
+                    <div class="bloco-title">📂 ${blocoObj.bloco}</div>
+                    <table>
+                        <tbody>${htmlMaterias}</tbody>
+                    </table>
+                </div>
+            `;
+        });
+
+        atualizarFiltrosDeck();
+        atualizarAnkiUI();
+    }
+
+    function atualizarNota(bIdx, mIdx, cIdx, valor) {
+        dadosEdital[bIdx].materias[mIdx].conteudos[cIdx].perc = parseInt(valor) || 0;
+        salvarTudo();
+    }
+
+    function adicionarTopico() {
+        const blocoNome = document.getElementById('input-bloco').value;
+        const materiaNome = document.getElementById('input-materia').value.trim();
+        const conteudoDesc = document.getElementById('input-conteudo').value.trim();
+        const perc = parseInt(document.getElementById('input-perc').value) || 0;
+
+        if(!materiaNome || !conteudoDesc) {
+            alert('Preencha a matéria e o conteúdo!');
+            return;
+        }
+
+        let bloco = dadosEdital.find(b => b.bloco === blocoNome);
+        if(!bloco) {
+            bloco = { bloco: blocoNome, materias: [] };
+            dadosEdital.push(bloco);
+        }
+
+        let materia = bloco.materias.find(m => m.nome.toLowerCase() === materiaNome.toLowerCase());
+        if(!materia) {
+            materia = { nome: materiaNome, conteudos: [] };
+            bloco.materias.push(materia);
+        }
+
+        materia.conteudos.push({ id: Date.now(), desc: conteudoDesc, perc });
+
+        document.getElementById('input-materia').value = '';
+        document.getElementById('input-conteudo').value = '';
+        document.getElementById('input-perc').value = '';
+        salvarTudo();
+    }
+
+    function removerConteudo(bIdx, mIdx, cIdx) {
+        dadosEdital[bIdx].materias[mIdx].conteudos.splice(cIdx, 1);
+        salvarTudo();
+    }
+
+    // ANKI GESTÃO DE DECKS & FLASHCARDS
+    function criarFlashcard() {
+        const tag = document.getElementById('anki-tag-novo').value.trim();
+        const p = document.getElementById('anki-p-novo').value.trim();
+        const r = document.getElementById('anki-r-novo').value.trim();
+
+        if(!tag || !p || !r) {
+            alert('Preencha todos os campos do flashcard!');
+            return;
+        }
+
+        flashcardsAnki.push({ id: Date.now(), tag, p, r, intervalo: 1 });
+        document.getElementById('anki-tag-novo').value = '';
+        document.getElementById('anki-p-novo').value = '';
+        document.getElementById('anki-r-novo').value = '';
+        salvarTudo();
+        alert('Flashcard adicionado ao baralho com sucesso!');
+    }
+
+    function atualizarFiltrosDeck() {
+        const select = document.getElementById('filtro-deck');
+        const tagsUnicas = [...new Set(flashcardsAnki.map(f => f.tag))];
+        
+        let html = `<option value="todos">Todos os Baralhos (${flashcardsAnki.length})</option>`;
+        tagsUnicas.forEach(t => {
+            const count = flashcardsAnki.filter(f => f.tag === t).length;
+            html += `<option value="${t}" ${deckAtual === t ? 'selected' : ''}>${t} (${count})</option>`;
+        });
+        select.innerHTML = html;
+    }
+
+    function mudarDeck(valor) {
+        deckAtual = valor;
+        ankiIdx = 0;
+        atualizarAnkiUI();
+    }
+
+    function getCartoesFiltrados() {
+        if(deckAtual === 'todos') return flashcardsAnki;
+        return flashcardsAnki.filter(f => f.tag === deckAtual);
+    }
+
+    function atualizarAnkiUI() {
+        const cartoes = getCartoesFiltrados();
+        if(cartoes.length === 0) {
+            document.getElementById('anki-p').innerText = "Nenhum cartão neste baralho.";
+            document.getElementById('anki-r').innerText = "Crie novos cartões acima.";
+            document.getElementById('anki-tag').innerText = "Vazio";
+            document.getElementById('anki-status').innerText = "0 cartões disponíveis";
+            return;
+        }
+        ankiIdx = ankiIdx % cartoes.length;
+        const card = cartoes[ankiIdx];
+        document.getElementById('anki-tag').innerText = card.tag;
+        document.getElementById('anki-p').innerText = card.p;
+        document.getElementById('anki-r').innerText = card.r;
+        document.getElementById('anki-status').innerText = `Cartão ${ankiIdx + 1} de ${cartoes.length} no baralho`;
+        document.getElementById('anki-obj').classList.remove('flipped');
+    }
+
+    function virarAnki() {
+        document.getElementById('anki-obj').classList.toggle('flipped');
+    }
+
+    function avaliarAnki(resposta) {
+        const cartoes = getCartoesFiltrados();
+        if(cartoes.length === 0) return;
+        
+        // Simulação do algoritmo Anki
+        if(resposta === 'denovo') cartoes[ankiIdx].intervalo = 1;
+        else if(resposta === 'bom') cartoes[ankiIdx].intervalo = 3;
+        else if(resposta === 'fácil') cartoes[ankiIdx].intervalo = 7;
+
+        ankiIdx = (ankiIdx + 1) % cartoes.length;
+        salvarTudo();
+    }
+
+    function limparTudo() {
+        if(confirm('Deseja limpar todos os dados salvos?')) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    renderizar();
+</script>
+
+</body>
+</html>
